@@ -11,6 +11,31 @@ AWS へのデプロイ研修用の、シンプルな管理システム（Node.js
 
 ダッシュボードには「現在のデプロイ方式」「EC2 インスタンス ID / AZ」「RDS 接続状態」が表示されるため、どの方式でデプロイされたかを画面で確認できます。
 
+## ログイン情報
+
+初期管理者アカウントは `npm run db:init`（またはデプロイスクリプト）の初回実行時に自動作成されます。
+
+| 環境 | ユーザー名 | パスワード |
+|---|---|---|
+| ローカル開発 | `admin` | `Admin@12345`（`.env` の `ADMIN_USERNAME` / `ADMIN_PASSWORD`） |
+| 方式1: CloudFormation | `admin` | **自動生成**。スタックの出力 `AdminSecretConsoleUrl` → Secrets Manager の「シークレットの値を取得する」で確認（下記コマンドでも可） |
+| 方式2・3: EC2 手動 / CI/CD | `/etc/aws-training/app.env` の `ADMIN_USERNAME`（既定 `admin`） | `app.env` の `ADMIN_PASSWORD` に設定した値（空欄の場合は `Admin@12345`） |
+
+方式1 のパスワードを AWS CLI で確認する場合:
+
+```bash
+SECRET_ID=$(aws cloudformation describe-stack-resource --stack-name aws-training --logical-resource-id AppAdminSecret \
+  --query "StackResourceDetail.PhysicalResourceId" --output text --region <リージョン>)
+aws secretsmanager get-secret-value --secret-id "$SECRET_ID" --query SecretString --output text --region <リージョン>
+# 出力例: {"username":"admin","password":"xxxxxxxxxxxxxxxx"}
+```
+
+> **注意**
+> - 初期管理者は **DB に未作成の場合のみ** 作成されます。作成後に `ADMIN_PASSWORD` を変更しても反映されないため、パスワード変更は画面の「ユーザー管理」から行ってください。
+> - `Admin@12345` は研修・開発用の既定値です。インターネットに公開する環境では必ず変更してください。
+> - このリポジトリは公開されています。**実際に使用しているパスワードをこのファイルやリポジトリに書かないでください。**
+> - 受講者用のアカウントは、管理者でログイン後「ユーザー管理」から追加できます。
+
 ## 画面・機能
 
 - **ログイン画面** … アカウントは RDS（PostgreSQL）の `users` テーブルに保存（パスワードは bcrypt ハッシュ）
