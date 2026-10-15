@@ -41,7 +41,8 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   store: new PgSession({ pool: db.pool, createTableIfMissing: true }),
-  cookie: { httpOnly: true, sameSite: 'lax', maxAge: 1000 * 60 * 60 * 8 },
+  // secure: 'auto' … HTTPS（CloudFront 経由）でアクセスされた場合のみ Secure 属性を付ける
+  cookie: { httpOnly: true, sameSite: 'lax', secure: 'auto', maxAge: 1000 * 60 * 60 * 8 },
 }));
 
 app.use(csrf);

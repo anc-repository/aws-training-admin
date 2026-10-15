@@ -6,6 +6,12 @@ const db = require('../db');
 
 const router = express.Router();
 
+// 接続元 IP。CloudFront 経由の場合は CloudFront-Viewer-Address（"IP:ポート"）から取得する
+function clientIp(req) {
+  const viewer = req.get('cloudfront-viewer-address');
+  return viewer ? viewer.slice(0, viewer.lastIndexOf(':')) : req.ip;
+}
+
 router.get('/login', (req, res) => {
   if (req.session.user) return res.redirect('/');
   return res.render('login', { title: 'ログイン', error: null, username: '' });
@@ -21,7 +27,7 @@ router.post('/login', async (req, res, next) => {
 
     await db.query(
       'INSERT INTO login_history (username, success, ip_address, user_agent) VALUES ($1, $2, $3, $4)',
-      [username.slice(0, 50), ok, req.ip, String(req.get('user-agent') || '').slice(0, 255)]
+      [username.slice(0, 50), ok, clientIp(req), String(req.get('user-agent') || '').slice(0, 255)]
     );
 
     if (!ok) {

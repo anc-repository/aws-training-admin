@@ -246,6 +246,34 @@ sudo systemctl disable --now postgresql
 
 ---
 
+## STEP9（任意）: CloudFront で HTTPS 化
+
+ここまでの構成は HTTP のため、ログインパスワードが暗号化されずに送信されます。
+CloudFront を前段に置くと、独自ドメインが無くても `https://xxxx.cloudfront.net` でアクセスできます。
+
+1. CloudFront コンソール →「ディストリビューションを作成」
+2. 設定
+
+   | 項目 | 設定 |
+   |---|---|
+   | オリジンドメイン | EC2 のパブリック IPv4 DNS（例: `ec2-xx-xx-xx-xx.ap-northeast-1.compute.amazonaws.com`） |
+   | プロトコル | HTTP のみ（ポート 80） |
+   | ビューワープロトコルポリシー | Redirect HTTP to HTTPS |
+   | 許可された HTTP メソッド | GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE |
+   | キャッシュポリシー | `CachingDisabled` |
+   | オリジンリクエストポリシー | `AllViewerAndCloudFrontHeaders-2022-06` |
+   | WAF | 有効にしない（研修のため） |
+
+3. 作成後、ステータスが「デプロイ済み」になるまで 5〜10 分待ち、
+   **ディストリビューションドメイン名**（`https://xxxx.cloudfront.net`）でアクセスしてログインできることを確認
+4. EC2 への直接アクセスを禁止する: `training-web-sg` の HTTP(80) のソースを `0.0.0.0/0` から
+   プレフィックスリスト **`com.amazonaws.global.cloudfront.origin-facing`** に変更
+
+> アプリは CloudFront が付与する `CloudFront-Forwarded-Proto` ヘッダーを nginx 経由で受け取り、
+> HTTPS の場合のみ Cookie に `Secure` 属性を付けます。ログイン履歴の IP は `CloudFront-Viewer-Address` から取得します。
+
+---
+
 ## 運用コマンド早見表
 
 | 内容 | コマンド |

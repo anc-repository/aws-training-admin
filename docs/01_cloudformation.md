@@ -3,12 +3,22 @@
 テンプレート 1 つで、ネットワークからアプリの起動までをすべて自動で構築します。
 「インフラをコードで管理する（IaC）」ことのメリットを体験するのが目的です。
 
+## 構成
+
+```
+ ブラウザ ── HTTPS ─▶ CloudFront（https://xxxx.cloudfront.net）
+                         │ HTTP:80（CloudFront からの通信のみ許可）
+                         ▼
+               EC2: nginx ─▶ Node.js ── 5432(SSL) ─▶ RDS for PostgreSQL（プライベートサブネット）
+```
+
 ## 作成されるリソース
 
 | 種類 | リソース | 補足 |
 |---|---|---|
 | ネットワーク | VPC (10.0.0.0/16)、パブリックサブネット ×2、プライベートサブネット ×2、IGW、ルートテーブル | RDS はインターネットから到達できないプライベートサブネットに配置 |
-| セキュリティグループ | web-sg（80 を公開 / キーペア指定時のみ 22）、db-sg（5432 を web-sg からのみ許可） | |
+| CloudFront | ディストリビューション（既定の証明書で HTTPS、HTTP は HTTPS へリダイレクト） | 独自ドメイン不要。動的ページはキャッシュ無効、`/static/*` のみキャッシュ |
+| セキュリティグループ | web-sg（80 は **CloudFront からのみ** 許可 / キーペア指定時のみ 22）、db-sg（5432 を web-sg からのみ許可） | CloudFront の AWS 管理プレフィックスリストを使用 |
 | Secrets Manager | RDS マスターユーザー、アプリの初期管理者 | パスワードは自動生成。テンプレートやパラメータに平文で書かない |
 | RDS | PostgreSQL（db.t4g.micro / 20GB gp3 / 暗号化） | シングル AZ |
 | IAM | EC2 用ロール | Session Manager 接続 + 上記シークレットの読み取り |
@@ -45,7 +55,7 @@ UserData の処理の流れ:
 
 5. 「スタックの失敗オプション」で **「正常にプロビジョニングされたリソースを保持する」** を選ぶと、失敗時に EC2 に入って原因を調査できます（研修ではこちらを推奨）
 6. 「AWS CloudFormation によって IAM リソースが作成される場合があることを承認します」にチェック →「送信」
-7. ステータスが `CREATE_COMPLETE` になるまで待つ（**約 15〜20 分**。RDS の作成に時間がかかります）
+7. ステータスが `CREATE_COMPLETE` になるまで待つ（**約 15〜20 分**。RDS と CloudFront の作成に時間がかかります）
 
 ## 手順（AWS CLI の場合）
 
@@ -68,7 +78,8 @@ aws cloudformation describe-stacks --stack-name aws-training --query "Stacks[0].
 
 1. スタックの「出力」タブを開く
 2. `AdminSecretConsoleUrl` のリンク → 「シークレットの値を取得する」で初期管理者の `username` / `password` を確認
-3. `AppUrl` をブラウザで開き、上記アカウントでログイン
+3. `AppUrl`（`https://xxxx.cloudfront.net/`）をブラウザで開き、上記アカウントでログイン
+   - EC2 のパブリック DNS に直接アクセスしても応答しません（CloudFront 経由のみ許可しているため）
 4. ダッシュボードの「現在のデプロイ方式」が **方式1: AWS CloudFormation による一括デプロイ** と表示され、
    RDS 接続状態が「接続OK」になっていることを確認
 
@@ -93,10 +104,11 @@ aws ssm start-session --target <WebServerInstanceId> --region ap-northeast-1
 |---|---|
 | `WebServer` が `CREATE_FAILED`（Received FAILURE signal） | セットアップスクリプトでエラー。上記のセットアップログを確認 |
 | `WebServer` がタイムアウト | Git URL の誤り・非公開リポジトリなど。cloud-init のログを確認 |
-| ブラウザで `ERR_CONNECTION_TIMED_OUT` | 研修環境は HTTP(80) のみ公開しています。ブラウザが `https://` で開いていないか確認し、アドレスバーに `http://` から入力してください（Chrome の「常に安全な接続を使用する」が有効な場合は警告画面で「サイトに進む」） |
+| ブラウザで `ERR_CONNECTION_TIMED_OUT` | EC2 の DNS / IP に直接アクセスしている。出力の `AppUrl`（CloudFront の URL）を使用する |
+| CloudFront で `504 Gateway Timeout` / `502` | EC2 が停止している、またはアプリが起動していない。EC2 を停止→起動するとパブリック DNS が変わるため、CloudFront のオリジンも更新が必要 |
 | ダッシュボードで DB 接続エラー | セキュリティグループ、`/etc/aws-training/app.env` の内容を確認 |
 
 ## 後片付け
 
 CloudFormation コンソールでスタックを削除すると、作成したリソースがすべて削除されます
-（RDS はスナップショットを残さず削除する設定です）。
+（RDS はスナップショットを残さず削除する設定です。CloudFront の無効化・削除に 5〜15 分程度かかります）。

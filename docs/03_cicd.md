@@ -170,6 +170,7 @@ CodePipeline コンソール →「パイプラインを作成する」→「カ
 | Secrets | `EC2_USER` | `ec2-user` |
 | Secrets | `EC2_SSH_KEY` | キーペアの秘密鍵（`.pem` ファイルの中身をすべて貼り付け） |
 | Variables | `DEPLOY_TARGET` | `github-actions` |
+| Variables | `APP_URL`（任意） | CloudFront を使っている場合は `https://xxxx.cloudfront.net/`（デプロイ後のヘルスチェック先。未設定なら `http://EC2_HOST/`） |
 
 > `DEPLOY_TARGET` が未設定の場合は test ジョブのみ実行され、デプロイはスキップされます
 > （3-A と同じリポジトリを使っても二重デプロイにならないようにするため）。

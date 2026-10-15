@@ -22,8 +22,10 @@ AWS へのデプロイ研修用の、シンプルな管理システム（Node.js
 ## 構成
 
 ```
-                    ┌──────────────── VPC ────────────────────────────┐
-  ブラウザ ── HTTP:80 ─▶ EC2 (Amazon Linux 2023)                       │
+  ブラウザ ── HTTPS ─▶ CloudFront（方式1。方式2・3 は任意で追加）
+                         │ HTTP:80
+                    ┌────┼─────────── VPC ────────────────────────────┐
+                    │    ▼  EC2 (Amazon Linux 2023)                    │
                     │   nginx :80 ─▶ Node.js :3000 (systemd)          │
                     │                    │ 5432 (SSL)                 │
                     │                    ▼                            │
@@ -36,6 +38,7 @@ AWS へのデプロイ研修用の、シンプルな管理システム（Node.js
 | アプリ | Node.js 22 / Express 4 / EJS |
 | DB | PostgreSQL 16（RDS for PostgreSQL） |
 | セッション | `connect-pg-simple`（RDS の `session` テーブルに保存） |
+| HTTPS | CloudFront（既定の証明書。独自ドメイン不要） |
 | Web サーバー | nginx（リバースプロキシ・静的ファイル配信） |
 | プロセス管理 | systemd（`aws-training.service`） |
 | OS | Amazon Linux 2023 |

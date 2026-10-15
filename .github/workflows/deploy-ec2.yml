@@ -3,6 +3,7 @@
 #
 # 有効化するには GitHub リポジトリに以下を設定してください（docs/03 参照）
 #   Variables : DEPLOY_TARGET = github-actions
+#               APP_URL（任意。CloudFront 経由の場合 https://xxxx.cloudfront.net/）
 #   Secrets   : EC2_HOST（EC2 のパブリック DNS / IP）
 #               EC2_USER（通常 ec2-user）
 #               EC2_SSH_KEY（秘密鍵 .pem の中身）
@@ -65,4 +66,8 @@ jobs:
             "sudo bash /tmp/aws-training-release/deploy/scripts/install-app.sh /tmp/aws-training-release"
 
       - name: 外部からヘルスチェック
-        run: curl -fsS --retry 5 --retry-delay 3 "http://$EC2_HOST/health"
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          url="${APP_URL:-http://$EC2_HOST/}"
+          curl -fsS --retry 5 --retry-delay 3 "${url%/}/health"
