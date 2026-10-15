@@ -1,7 +1,7 @@
 # ============================================================
 # 方式3-B: GitHub Actions による CI/CD（SSH で EC2 にデプロイ）
 #
-# 有効化するには GitHub リポジトリに以下を設定してください（docs/03 参照）
+# 有効化するには GitHub リポジトリに以下を設定してください（README の「方式3」参照）
 #   Variables : DEPLOY_TARGET = github-actions
 #               APP_URL（任意。CloudFront 経由の場合 https://xxxx.cloudfront.net/）
 #   Secrets   : EC2_HOST（EC2 のパブリック DNS / IP）

@@ -6,7 +6,7 @@ rm -rf /opt/aws-training-release
 mkdir -p /opt/aws-training-release
 
 if [[ ! -f /etc/aws-training/app.env ]]; then
-  echo "[エラー] /etc/aws-training/app.env がありません。EC2 の事前準備（docs/03 参照）を行ってください。" >&2
+  echo "[エラー] /etc/aws-training/app.env がありません。EC2 の事前準備（README の「方式3」参照）を行ってください。" >&2
   exit 1
 fi
 command -v node >/dev/null || { echo "[エラー] Node.js が未インストールです（install-packages.sh を実行してください）" >&2; exit 1; }
