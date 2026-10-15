@@ -93,6 +93,7 @@ aws ssm start-session --target <WebServerInstanceId> --region ap-northeast-1
 |---|---|
 | `WebServer` が `CREATE_FAILED`（Received FAILURE signal） | セットアップスクリプトでエラー。上記のセットアップログを確認 |
 | `WebServer` がタイムアウト | Git URL の誤り・非公開リポジトリなど。cloud-init のログを確認 |
+| ブラウザで `ERR_CONNECTION_TIMED_OUT` | 研修環境は HTTP(80) のみ公開しています。ブラウザが `https://` で開いていないか確認し、アドレスバーに `http://` から入力してください（Chrome の「常に安全な接続を使用する」が有効な場合は警告画面で「サイトに進む」） |
 | ダッシュボードで DB 接続エラー | セキュリティグループ、`/etc/aws-training/app.env` の内容を確認 |
 
 ## 後片付け
