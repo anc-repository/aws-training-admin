@@ -1,0 +1,22 @@
+# /etc/systemd/system/aws-training.service
+#   Node.js アプリを systemd のサービスとして常駐させる
+[Unit]
+Description=AWS Training Admin System (Node.js)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nodeapp
+Group=nodeapp
+WorkingDirectory=/opt/aws-training
+Environment=NODE_ENV=production
+EnvironmentFile=/etc/aws-training/app.env
+ExecStart=/usr/bin/node src/server.js
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

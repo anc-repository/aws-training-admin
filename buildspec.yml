@@ -1,0 +1,34 @@
+# ============================================================
+# CodeBuild ビルド定義（方式3: CodePipeline のビルドステージ）
+#   - 依存パッケージのインストールと構文チェック
+#   - シェルスクリプトに実行権限を付与し、CodeDeploy 用アーティファクトを出力
+#   ※ node_modules は EC2 側（install-app.sh）で npm ci するため含めない
+# ============================================================
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 22
+  pre_build:
+    commands:
+      - echo "依存パッケージをインストールします"
+      - npm ci --no-audit --no-fund
+  build:
+    commands:
+      - echo "JavaScript の構文チェックを行います"
+      - find src scripts public -name '*.js' -print0 | xargs -0 -n1 node --check
+      - echo "シェルスクリプトの構文チェックを行います"
+      - for f in deploy/scripts/*.sh deploy/codedeploy/*.sh; do bash -n "$f"; done
+      - chmod +x deploy/scripts/*.sh deploy/codedeploy/*.sh
+  post_build:
+    commands:
+      - echo "ビルドが完了しました（$(date '+%Y-%m-%d %H:%M:%S')）"
+
+artifacts:
+  files:
+    - '**/*'
+  exclude-paths:
+    - 'node_modules/**/*'
+    - '.git/**/*'
+    - '.env'

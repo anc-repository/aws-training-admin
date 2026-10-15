@@ -1,0 +1,50 @@
+<%- include('../partials/header') %>
+<% const e = employee; const v = (k) => e[k] == null ? '' : e[k]; %>
+<h1 class="page-title"><%= title %></h1>
+
+<% if (errors.length) { %>
+<div class="alert alert-error"><ul><% errors.forEach(msg => { %><li><%= msg %></li><% }) %></ul></div>
+<% } %>
+
+<form method="post" action="<%= action %>" class="card form grid-form">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <label>社員番号 <span class="req">必須</span>
+    <input type="text" name="employee_no" value="<%= v('employee_no') %>" maxlength="20" required placeholder="例: E0101">
+  </label>
+  <label>状態
+    <select name="status">
+      <option value="active" <%= e.status === 'active' ? 'selected' : '' %>>在籍</option>
+      <option value="leave" <%= e.status === 'leave' ? 'selected' : '' %>>休職</option>
+      <option value="retired" <%= e.status === 'retired' ? 'selected' : '' %>>退職</option>
+    </select>
+  </label>
+  <label>氏名 <span class="req">必須</span>
+    <input type="text" name="name" value="<%= v('name') %>" maxlength="100" required placeholder="例: 山田 太郎">
+  </label>
+  <label>フリガナ
+    <input type="text" name="name_kana" value="<%= v('name_kana') %>" maxlength="100" placeholder="例: ヤマダ タロウ">
+  </label>
+  <label>部署
+    <input type="text" name="department" value="<%= v('department') %>" maxlength="100">
+  </label>
+  <label>役職
+    <input type="text" name="position" value="<%= v('position') %>" maxlength="100">
+  </label>
+  <label>メールアドレス
+    <input type="email" name="email" value="<%= v('email') %>" maxlength="255">
+  </label>
+  <label>電話番号
+    <input type="text" name="phone" value="<%= v('phone') %>" maxlength="30">
+  </label>
+  <label>入社日
+    <input type="date" name="hire_date" value="<%= v('hire_date') %>">
+  </label>
+  <label class="full">備考
+    <textarea name="note" rows="3"><%= v('note') %></textarea>
+  </label>
+  <div class="full form-actions">
+    <a href="/employees" class="btn btn-ghost">キャンセル</a>
+    <button type="submit" class="btn btn-primary">保存する</button>
+  </div>
+</form>
+<%- include('../partials/footer') %>

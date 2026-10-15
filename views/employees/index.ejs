@@ -1,0 +1,64 @@
+<%- include('../partials/header') %>
+<% const STATUS = { active: ['在籍', 'badge-ok'], leave: ['休職', 'badge-warn'], retired: ['退職', 'badge-muted'] }; %>
+<div class="page-head">
+  <h1 class="page-title">社員管理</h1>
+  <a href="/employees/new" class="btn btn-primary">＋ 新規登録</a>
+</div>
+
+<% if (flash) { %><div class="alert alert-success"><%= flash %></div><% } %>
+
+<form method="get" action="/employees" class="search card">
+  <input type="text" name="q" value="<%= q %>" placeholder="社員番号・氏名・フリガナ・部署・メールで検索">
+  <select name="status">
+    <option value="">すべての状態</option>
+    <% Object.entries(STATUS).forEach(([k, [label]]) => { %>
+    <option value="<%= k %>" <%= status === k ? 'selected' : '' %>><%= label %></option>
+    <% }) %>
+  </select>
+  <button type="submit" class="btn">検索</button>
+  <% if (q || status) { %><a href="/employees" class="btn btn-ghost">クリア</a><% } %>
+</form>
+
+<div class="card">
+  <p class="muted">全 <%= total %> 件</p>
+  <div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr><th>社員番号</th><th>氏名</th><th>部署</th><th>役職</th><th>メール</th><th>入社日</th><th>状態</th><th></th></tr>
+    </thead>
+    <tbody>
+    <% if (employees.length === 0) { %>
+      <tr><td colspan="8" class="muted center">該当する社員がいません</td></tr>
+    <% } %>
+    <% employees.forEach(e => { %>
+      <tr>
+        <td class="mono"><%= e.employee_no %></td>
+        <td><%= e.name %><% if (e.name_kana) { %><br><small class="muted"><%= e.name_kana %></small><% } %></td>
+        <td><%= e.department || '-' %></td>
+        <td><%= e.position || '-' %></td>
+        <td><%= e.email || '-' %></td>
+        <td><%= e.hire_date || '-' %></td>
+        <td><span class="badge <%= STATUS[e.status][1] %>"><%= STATUS[e.status][0] %></span></td>
+        <td class="actions">
+          <a href="/employees/<%= e.id %>/edit" class="btn btn-small">編集</a>
+          <form method="post" action="/employees/<%= e.id %>/delete" class="inline confirm-delete">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="btn btn-small btn-danger">削除</button>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+
+  <% if (totalPages > 1) { %>
+  <div class="pager">
+    <% for (let i = 1; i <= totalPages; i++) { %>
+      <a class="<%= i === page ? 'active' : '' %>" href="?q=<%= encodeURIComponent(q) %>&status=<%= status %>&page=<%= i %>"><%= i %></a>
+    <% } %>
+  </div>
+  <% } %>
+</div>
+<script src="/static/js/confirm.js"></script>
+<%- include('../partials/footer') %>

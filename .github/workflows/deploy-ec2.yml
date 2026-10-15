@@ -1,0 +1,68 @@
+# ============================================================
+# 方式3-B: GitHub Actions による CI/CD（SSH で EC2 にデプロイ）
+#
+# 有効化するには GitHub リポジトリに以下を設定してください（docs/03 参照）
+#   Variables : DEPLOY_TARGET = github-actions
+#   Secrets   : EC2_HOST（EC2 のパブリック DNS / IP）
+#               EC2_USER（通常 ec2-user）
+#               EC2_SSH_KEY（秘密鍵 .pem の中身）
+# ============================================================
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ec2
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: ビルド・構文チェック
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: JavaScript の構文チェック
+        run: find src scripts public -name '*.js' -print0 | xargs -0 -n1 node --check
+      - name: シェルスクリプトの構文チェック
+        run: for f in deploy/scripts/*.sh deploy/codedeploy/*.sh; do bash -n "$f"; done
+
+  deploy:
+    name: EC2 へデプロイ
+    needs: test
+    if: vars.DEPLOY_TARGET == 'github-actions'
+    runs-on: ubuntu-latest
+    env:
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+      EC2_USER: ${{ secrets.EC2_USER }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: SSH 鍵を設定
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/id_ec2
+          chmod 600 ~/.ssh/id_ec2
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+      - name: ソースを EC2 に転送
+        run: |
+          rsync -az --delete --exclude node_modules --exclude .git --exclude .env \
+            -e "ssh -i ~/.ssh/id_ec2" ./ "$EC2_USER@$EC2_HOST:/tmp/aws-training-release/"
+
+      - name: EC2 上でデプロイスクリプトを実行
+        run: |
+          ssh -i ~/.ssh/id_ec2 "$EC2_USER@$EC2_HOST" \
+            "sudo bash /tmp/aws-training-release/deploy/scripts/install-app.sh /tmp/aws-training-release"
+
+      - name: 外部からヘルスチェック
+        run: curl -fsS --retry 5 --retry-delay 3 "http://$EC2_HOST/health"

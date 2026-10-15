@@ -1,0 +1,22 @@
+<%- include('partials/header') %>
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-title">
+      <span class="logo big">☁</span>
+      <h1>AWS 研修管理システム</h1>
+      <p class="muted">アカウント情報を入力してログインしてください</p>
+    </div>
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+    <form method="post" action="/login" class="form">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label>ユーザー名
+        <input type="text" name="username" value="<%= username %>" autocomplete="username" required autofocus>
+      </label>
+      <label>パスワード
+        <input type="password" name="password" autocomplete="current-password" required>
+      </label>
+      <button type="submit" class="btn btn-primary btn-block">ログイン</button>
+    </form>
+  </div>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,70 @@
+<%- include('../partials/header') %>
+<h1 class="page-title">ユーザー管理</h1>
+<p class="muted">ログインアカウントは RDS 上の <code>users</code> テーブルに保存されています（パスワードは bcrypt でハッシュ化）。</p>
+
+<% if (flash) { %><div class="alert alert-success"><%= flash %></div><% } %>
+<% if (errors.length) { %>
+<div class="alert alert-error"><ul><% errors.forEach(msg => { %><li><%= msg %></li><% }) %></ul></div>
+<% } %>
+
+<div class="card">
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>ID</th><th>ユーザー名</th><th>表示名</th><th>権限</th><th>最終ログイン</th><th>作成日時</th><th>パスワード変更</th><th></th></tr></thead>
+    <tbody>
+    <% users.forEach(u => { %>
+      <tr>
+        <td><%= u.id %></td>
+        <td class="mono"><%= u.username %></td>
+        <td><%= u.display_name %></td>
+        <td><span class="badge <%= u.role === 'admin' ? 'badge-warn' : 'badge-muted' %>"><%= u.role === 'admin' ? '管理者' : '一般' %></span></td>
+        <td><%= u.last_login_at || '-' %></td>
+        <td><%= u.created_at %></td>
+        <td>
+          <form method="post" action="/users/<%= u.id %>/password" class="inline">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="password" name="password" placeholder="新しいパスワード" minlength="8" required class="input-small">
+            <button type="submit" class="btn btn-small">変更</button>
+          </form>
+        </td>
+        <td>
+          <% if (u.id !== currentUser.id) { %>
+          <form method="post" action="/users/<%= u.id %>/delete" class="inline confirm-delete">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="btn btn-small btn-danger">削除</button>
+          </form>
+          <% } %>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>ユーザーの追加</h2>
+  <form method="post" action="/users" class="form grid-form">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <label>ユーザー名 <span class="req">必須</span>
+      <input type="text" name="username" value="<%= form.username || '' %>" required placeholder="半角英数字 3〜50文字">
+    </label>
+    <label>表示名 <span class="req">必須</span>
+      <input type="text" name="display_name" value="<%= form.display_name || '' %>" required placeholder="例: 研修 受講者A">
+    </label>
+    <label>パスワード <span class="req">必須</span>
+      <input type="password" name="password" minlength="8" required placeholder="8文字以上">
+    </label>
+    <label>権限
+      <select name="role">
+        <option value="user" <%= form.role !== 'admin' ? 'selected' : '' %>>一般</option>
+        <option value="admin" <%= form.role === 'admin' ? 'selected' : '' %>>管理者</option>
+      </select>
+    </label>
+    <div class="full form-actions">
+      <button type="submit" class="btn btn-primary">追加する</button>
+    </div>
+  </form>
+</div>
+<script src="/static/js/confirm.js"></script>
+<%- include('../partials/footer') %>

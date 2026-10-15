@@ -1,0 +1,87 @@
+<%- include('partials/header') %>
+<h1 class="page-title">ダッシュボード</h1>
+
+<div class="deploy-banner">
+  <div class="label">現在のデプロイ方式</div>
+  <div class="value"><%= server.deployMethod %></div>
+</div>
+
+<% if (stats) { %>
+<section class="cards">
+  <div class="card stat"><div class="stat-label">登録社員数</div><div class="stat-value"><%= stats.total %><small>名</small></div></div>
+  <div class="card stat"><div class="stat-label">在籍中</div><div class="stat-value"><%= stats.active %><small>名</small></div></div>
+  <div class="card stat"><div class="stat-label">休職中</div><div class="stat-value"><%= stats.leaveCount %><small>名</small></div></div>
+  <div class="card stat"><div class="stat-label">ログインユーザー数</div><div class="stat-value"><%= stats.users %><small>件</small></div></div>
+</section>
+<% } %>
+
+<section class="grid-2">
+  <div class="card">
+    <h2>サーバー情報</h2>
+    <table class="kv">
+      <tr><th>ホスト名</th><td><%= server.hostname %></td></tr>
+      <% if (server.ec2) { %>
+      <tr><th>インスタンス ID</th><td><%= server.ec2.instanceId %></td></tr>
+      <tr><th>インスタンスタイプ</th><td><%= server.ec2.instanceType %></td></tr>
+      <tr><th>アベイラビリティーゾーン</th><td><%= server.ec2.az %></td></tr>
+      <tr><th>プライベート IP</th><td><%= server.ec2.privateIp %></td></tr>
+      <% } else { %>
+      <tr><th>EC2 メタデータ</th><td class="muted">取得できません（EC2 以外の環境）</td></tr>
+      <% } %>
+      <tr><th>OS</th><td><%= server.platform %></td></tr>
+      <tr><th>Node.js</th><td><%= server.node %></td></tr>
+      <tr><th>アプリバージョン</th><td>v<%= server.appVersion %></td></tr>
+      <tr><th>稼働時間</th><td><%= Math.floor(server.uptime / 3600) %>時間 <%= Math.floor(server.uptime % 3600 / 60) %>分</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>データベース（RDS）接続状態</h2>
+    <table class="kv">
+      <tr><th>状態</th><td>
+        <% if (dbInfo.ok) { %><span class="badge badge-ok">接続OK</span><% } else { %><span class="badge badge-ng">接続エラー</span><% } %>
+      </td></tr>
+      <tr><th>接続先ホスト</th><td class="mono"><%= server.dbHost %></td></tr>
+      <% if (dbInfo.ok) { %>
+      <tr><th>データベース名</th><td><%= dbInfo.name %></td></tr>
+      <tr><th>PostgreSQL バージョン</th><td><%= dbInfo.version %></td></tr>
+      <tr><th>DB サーバー時刻</th><td><%= dbInfo.now %></td></tr>
+      <% } else { %>
+      <tr><th>エラー内容</th><td class="error-text"><%= dbInfo.error %></td></tr>
+      <% } %>
+    </table>
+  </div>
+</section>
+
+<section class="grid-2">
+  <div class="card">
+    <h2>部署別 在籍人数</h2>
+    <% const max = Math.max(1, ...departments.map(d => d.cnt)); %>
+    <% if (departments.length === 0) { %><p class="muted">データがありません</p><% } %>
+    <% departments.forEach(d => { %>
+    <div class="bar-row">
+      <span class="bar-label"><%= d.department %></span>
+      <span class="bar"><span style="width: <%= Math.round(d.cnt / max * 100) %>%"></span></span>
+      <span class="bar-num"><%= d.cnt %>名</span>
+    </div>
+    <% }) %>
+  </div>
+
+  <div class="card">
+    <h2>最近のログイン履歴</h2>
+    <table class="table compact">
+      <thead><tr><th>日時</th><th>ユーザー</th><th>結果</th><th>IP</th></tr></thead>
+      <tbody>
+      <% logins.forEach(l => { %>
+        <tr>
+          <td><%= l.created_at %></td>
+          <td><%= l.username %></td>
+          <td><% if (l.success) { %><span class="badge badge-ok">成功</span><% } else { %><span class="badge badge-ng">失敗</span><% } %></td>
+          <td class="mono"><%= l.ip_address %></td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('partials/footer') %>

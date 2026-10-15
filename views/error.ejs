@@ -1,0 +1,10 @@
+<%- include('partials/header') %>
+<div class="<%= locals.currentUser ? '' : 'login-wrap' %>">
+  <div class="card error-card">
+    <h1><%= title %></h1>
+    <p><%= message %></p>
+    <% if (locals.detail) { %><pre class="detail"><%= detail %></pre><% } %>
+    <a href="/" class="btn btn-primary">トップへ戻る</a>
+  </div>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> | AWS 研修管理システム</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<% const user = locals.currentUser; const p = locals.path || ''; %>
+<% if (user) { %>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">☁</span>
+    <span>AWS 研修管理システム</span>
+  </div>
+  <nav class="nav">
+    <a href="/" class="<%= p === '/' ? 'active' : '' %>">ダッシュボード</a>
+    <a href="/employees" class="<%= p.startsWith('/employees') ? 'active' : '' %>">社員管理</a>
+    <% if (user.role === 'admin') { %>
+    <a href="/users" class="<%= p.startsWith('/users') ? 'active' : '' %>">ユーザー管理</a>
+    <% } %>
+  </nav>
+  <div class="userbox">
+    <span><%= user.displayName %>（<%= user.role === 'admin' ? '管理者' : '一般' %>）</span>
+    <form method="post" action="/logout">
+      <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
+      <button type="submit" class="btn btn-ghost">ログアウト</button>
+    </form>
+  </div>
+</header>
+<% } %>
+<main class="<%= user ? 'container' : '' %>">

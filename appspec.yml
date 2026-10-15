@@ -1,0 +1,24 @@
+# ============================================================
+# CodeDeploy 定義ファイル（方式3: CodePipeline + CodeDeploy）
+#   リビジョンを /opt/aws-training-release に展開し、
+#   install-app.sh で /opt/aws-training に反映・再起動する
+# ============================================================
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /opt/aws-training-release
+file_exists_behavior: OVERWRITE
+hooks:
+  BeforeInstall:
+    - location: deploy/codedeploy/before-install.sh
+      timeout: 60
+      runas: root
+  AfterInstall:
+    - location: deploy/codedeploy/after-install.sh
+      timeout: 900
+      runas: root
+  ValidateService:
+    - location: deploy/codedeploy/validate-service.sh
+      timeout: 120
+      runas: root
