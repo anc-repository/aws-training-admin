@@ -151,7 +151,7 @@ npm run dev
 ### 2. GitHub にリポジトリを用意（方式1・3 で使用）
 
 1. GitHub にサインインし、このリポジトリ
-   https://github.com/activenetworkproduction-lab/aws-training-admin を開く
+   https://github.com/anc-repository/aws-training-admin を開く
 2. 画面右上の **「Fork」** →「Create fork」をクリックし、自分のアカウントにコピーを作成
    - 方式1 だけを行う場合、Fork せずに元のリポジトリ URL をそのまま使っても構いません
    - 方式3（CI/CD）では、自分が push できるリポジトリが必要なため **Fork は必須** です
@@ -380,7 +380,7 @@ STEP1 キーペア・SG作成 ─▶ STEP2 EC2 作成 ─▶ STEP3 コードを�
 
 ```bash
 # リポジトリを取得（Fork した場合は自分のリポジトリ URL）
-git clone https://github.com/activenetworkproduction-lab/aws-training-admin.git
+git clone https://github.com/anc-repository/aws-training-admin.git
 cd aws-training-admin
 
 # node_modules・.git・.env を除いて圧縮

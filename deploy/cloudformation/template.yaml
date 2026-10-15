@@ -33,7 +33,7 @@ Parameters:
     AllowedPattern: '^[a-z][a-z0-9-]{2,30}$'
   GitRepoUrl:
     Type: String
-    Default: https://github.com/activenetworkproduction-lab/aws-training-admin.git
+    Default: https://github.com/anc-repository/aws-training-admin.git
     Description: 'Fork した場合は自分のリポジトリ URL に変更'
   GitBranch:
     Type: String
