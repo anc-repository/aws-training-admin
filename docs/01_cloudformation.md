@@ -49,6 +49,10 @@ UserData の処理の流れ:
 
 ## 手順（AWS CLI の場合）
 
+> **Windows の場合**: テンプレートに日本語が含まれるため、事前に `AWS_CLI_FILE_ENCODING=UTF-8` を設定してください
+> （未設定だと `text contents could not be decoded` エラーになります）。
+> PowerShell: `$env:AWS_CLI_FILE_ENCODING = "UTF-8"` / Git Bash: `export AWS_CLI_FILE_ENCODING=UTF-8`
+
 ```bash
 aws cloudformation deploy \
   --stack-name aws-training \
